@@ -1,18 +1,20 @@
 const classifiedColumn = document.querySelectorAll('.classifiedColumn');
 const pocket = document.querySelector('#pocket');
 
-pocket.addEventListener('click', event => {
-  const target = event.target;
-  if(target.tagName = 'LI') {
-    pushTarget(target)
-  }
-})
+const sortElem = list => {
+  Array.from(list.querySelectorAll('li:not(:first-child)'))
+  .sort((a, b) => a.innerHTML[1] - b.innerHTML[1])
+  .forEach(li => list.append(li))
+}
 
 const pushTarget = target => {
-  console.log(target[0])
-  switch(target.innerHTML[0]) {
-    case 'A': classifiedColumn[0].append(target) break;
-    case 'B': classifiedColumn[1].append(target) break;
-    case 'C': classifiedColumn[2].append(target) break;
-  }
+  const index =  target.innerHTML[0].charCodeAt() - 65;
+  classifiedColumn[index].append(target);
+  sortElem(classifiedColumn[index])
+  if(!pocket.querySelectorAll('li').length) pocket.remove()
 }
+
+pocket.addEventListener('click', event => {
+  if(event.target.tagName = 'LI') pushTarget(event.target)
+})
+
