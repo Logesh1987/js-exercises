@@ -1,26 +1,44 @@
-const classifiedColumn = document.querySelectorAll('.classifiedColumn');
-const pocket = document.querySelector('#pocket');
 const model = {
-  pocketSize: pocket.querySelectorAll('li').length
+  pocketSize: pocket.querySelectorAll('li').length,
+  A: [],
+  B: [],
+  C: []
 }
+
 const view = {
-  sortElem: list => {
-    Array.from(list.querySelectorAll('li:not(:first-child)'))
-    .sort((a, b) => a.innerHTML[1] - b.innerHTML[1])
-    .forEach(li => list.append(li))
-    if(!model.pocketSize) pocket.remove()
+  classifiedColumn: document.querySelectorAll('.classifiedColumn'),
+  pocket: document.querySelector('#pocket'),
+  render: column => {
+    const index = column.charCodeAt() - 65;
+    const targetColumn = view.classifiedColumn[index];
+    targetColumn.querySelectorAll('li:not(:first-child').forEach(el => el.remove())
+    model[column].forEach(element => {
+      let li = document.createElement('li')
+      li.appendChild(document.createTextNode(element))
+      targetColumn.append(li)
+    });
+  },
+  removeElement: target => {
+    target.remove()
+    if(model.pocketSize <= 0) this.pocket.remove()
   }
 }
+
 const controller = {
-  pushTarget: target => {
-    const index =  target.innerHTML[0].charCodeAt() - 65;
-    classifiedColumn[index].append(target);
+  pushData: function(target) {
+    const data = target.innerHTML;
+    model[data[0]].push(data)
     model.pocketSize--;
-    view.sortElem(classifiedColumn[index]);
+    view.removeElement(target);
+    this.sortData(data[0])
+  },
+  sortData: column => {
+    model[column] = model[column].sort();
+    view.render(column);
   }
 }
 
 pocket.addEventListener('click', event => {
-  if(event.target.tagName === 'LI') controller.pushTarget(event.target)
+  if(event.target.tagName === 'LI') controller.pushData(event.target)
 })
 
