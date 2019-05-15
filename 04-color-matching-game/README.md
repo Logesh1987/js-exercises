@@ -1,5 +1,8 @@
 # Color matching game
 
+## LINK
+https://logeshkrds.github.io/js-exercises/04-color-matching-game/
+
 ## Task
 
 - Each tile represents a color in random arrangement
