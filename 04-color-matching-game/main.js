@@ -1,75 +1,69 @@
 //Color matching game
 const model = {
-    colors: ['red', 'green', 'yellow', 'orange', 'blue', 'purple', 'cyan', 'magenta'],
-    selectedColors: [],
-    selectedCards: [],
+    uniqueColors: ['red', 'green', 'yellow', 'cornflowerblue', 'blue', 'purple', 'cyan', 'magenta'],
+    colorBox: [],
+    selectedIndex: null,
     steps: 1
 }
 
-const controller = {
-    incrementSteps: () => view.renderSteps(model.steps++),
-    multiplyArray: arr => arr.map(item => [item, item]).reduce((a, b) => a.concat(b)),
-    shuffleArray: arr => arr.sort(() => Math.random() - 0.5),
-    compareSelected: () => {
-        return model.selectedCards.reduce((acc, cv) => {
-            return acc.getAttribute('data-color') === cv.getAttribute('data-color');
-        })
-    },
-    checkComplete: () => {
-        if(model.selectedColors.length == model.colors.length)
-            view.gameCompleted()
-    },
-    init: function() {
-        let array = this.multiplyArray(model.colors);
-        array = this.shuffleArray(array);
-        view.load(array);
-    }
-}
-
 const view = {
-    steps: document.querySelector('.steps'),
     board: document.querySelector('.board'),
     cards: document.querySelectorAll('.board li'),
     congratsMsg: document.querySelector('#congrats'),
-    load: arr => {
-        arr.forEach((color, index) => {
-            view.cards[index].setAttribute('data-color', color)
-        })
-        view.board.addEventListener('click', view.triggerAction)
+    steps: document.querySelector('.steps'),
+    incrementSteps: () => {
+        steps.innerHTML = steps.innerHTML.replace(/[0-9]/g, '') + model.steps++;
     },
     triggerAction: e => {
-        const target = e.target;
-        if(target.tagName == 'LI') {
-            controller.incrementSteps()
-            const color = target.getAttribute('data-color');
-            target.style.pointerEvents = 'none';
-            target.style.backgroundColor = color;
-            model.selectedCards.push(target)
-            if(model.selectedCards.length === 2) {
-                view.compareCards()
-            }
-        }        
-    },
-    compareCards: () => {
-        const { selectedCards, selectedColors } = model;
-        if(controller.compareSelected()) {
-            selectedCards.forEach(card => card.style.pointerEvents = 'none');
-            selectedColors.push(selectedCards[0].getAttribute('data-color'));
-            model.selectedCards = []
-            controller.checkComplete();
-        } else {
-            setTimeout(() => {
-                selectedCards.forEach(card => card.removeAttribute('style'))
-                model.selectedCards = []
-            }, 500)
+        if(e.target.tagName !== 'LI') return false;
+
+        view.incrementSteps()
+        const index = Array.from(view.cards).indexOf(e.target)
+        e.target.setAttribute('style', `background-color:${model.colorBox[index].color};pointer-events: none`)
+        if(model.selectedIndex == null) {
+            model.selectedIndex = index
         }
-    },
-    renderSteps: count => {
-        steps.innerHTML = steps.innerHTML.replace(/[0-9]/g, '') + count;
+        else {
+            if(model.colorBox[index].color === model.colorBox[model.selectedIndex].color) {
+                view.cards[index].style.pointerEvents = 'none';
+                view.cards[model.selectedIndex].style.pointerEvents = 'none';
+                model.colorBox[model.selectedIndex].freeze = true;
+                model.colorBox[index].freeze = true;
+                model.selectedIndex = null
+                if(controller.checkFreeze()) {
+                    view.gameCompleted()
+                }
+            }
+            else {
+                view.board.style.pointerEvents = 'none';
+                setTimeout(() => {
+                    view.cards[index].removeAttribute('style');
+                    view.cards[model.selectedIndex].removeAttribute('style');
+                    view.board.removeAttribute('style');
+                    model.selectedIndex = null
+                }, 600)
+            }
+        }
     },
     gameCompleted: () => {
         view.congratsMsg.removeAttribute('style');
         view.board.removeEventListener('click', view.triggerAction)
+    }
+}
+
+const controller = {
+    shuffle: arr => {
+        return arr.map(item => [item, item]).flat()
+        .sort(() => Math.random() - 0.5).map(item => {
+            return {color: item, freeze: false}
+        })
+    },
+    checkFreeze: () => {
+        return model.colorBox.every(item => item.freeze)
+    },
+    init: () => {
+        model.colorBox = controller.shuffle(model.uniqueColors);
+        view.board.addEventListener('click', view.triggerAction)
     }
 }
 
