@@ -2,23 +2,18 @@ const model = {
     uniqueColors: ['red', 'green', 'yellow', 'cornflowerblue', 'blue', 'purple', 'cyan', 'magenta'],
     colorBox: [],
     selectedIndex: null,
+    chosenColor: 0,
     steps: 1,
     getColorBox: () => model.colorBox,
     getselectedIndex: () => model.selectedIndex,
     getsteps: () => model.steps,
-    setColorBox: () => {        
+    createColorBox: () => {        
         model.colorBox = model.uniqueColors.map(item => [item, item]).flat()
-        .sort(() => Math.random() - 0.5).map(item => {
-            return {color: item, freeze: false}
-        })
+        .sort(() => Math.random() - 0.5)
     },
-    setColorFreeze: arr => {
-        arr.forEach(id => model.colorBox[id].freeze = true)
-    },    
-    checkFreeze: () => {
-        return model.colorBox.every(item => item.freeze)
-    },
-    setSelectedIndex: id => model.selectedIndex = id,
+    checkChosenColor: () => model.uniqueColors.length === model.chosenColor,
+    updateChosenColor: () => model.chosenColor++,
+    updateSelectedIndex: id => model.selectedIndex = id,
     incrementSteps: () => model.steps++,
 }
 
@@ -27,8 +22,8 @@ const view = {
     cards: document.querySelectorAll('.board li'),
     congratsMsg: document.querySelector('#congrats'),
     steps: document.querySelector('.steps'),
-    renderTile: (target, color) => {
-        target.setAttribute('style', `background-color:${color};pointer-events: none`)
+    renderTile: (index, color) => {
+        view.cards[index].setAttribute('style', `background-color:${color};pointer-events: none`)
     },
     freezeBoard: status => {
         status ? 
@@ -36,34 +31,35 @@ const view = {
         board.style.pointerEvents = 'auto' 
     },
     freezeTiles: (arr) => {
-        arr.forEach(el => el.style.pointerEvents = status)
+        arr.forEach(index => view.cards[index].style.pointerEvents = 'none')
     },
     resetTiles: (arr) => {
-        arr.forEach(el => el.removeAttribute('style'))
+        arr.forEach(index => view.cards[index].removeAttribute('style'))
     },
     updateSteps: count => {
         steps.innerHTML = steps.innerHTML.replace(/[0-9]/g, '') + count;
     },
     gameCompleted: () => {
         view.congratsMsg.removeAttribute('style');
-    }
+        view.board.removeEventListener('click', view.triggerAction)
+    },
+    init: () => {
+        view.board.addEventListener('click', controller.triggerAction)
+    },
 }
 const controller = {
     board: document.querySelector('.board'),
     cards: document.querySelectorAll('.board li'),
-    init: () => {
-        controller.board.addEventListener('click', controller.triggerAction)
-    },
     triggerAction: e => {
         if(e.target.tagName !== 'LI') return false;
         view.updateSteps(model.incrementSteps())
 
         const index = Array.from(controller.cards).indexOf(e.target);
         const previousIndex = model.getselectedIndex();
-        view.renderTile(e.target, model.getColorBox()[index].color)
+        view.renderTile(index, model.getColorBox()[index])
 
         if(previousIndex == null) {
-            model.setSelectedIndex(index)
+            model.updateSelectedIndex(index)
         }
         else {
             controller.compareTiles(previousIndex, index)
@@ -72,25 +68,24 @@ const controller = {
     compareTiles: (previousIndex, index) => {
         const colorBox = model.getColorBox()
 
-        if(colorBox[previousIndex].color === colorBox[index].color) {
-            view.freezeTiles([controller.cards[previousIndex], controller.cards[index]])
-            model.setColorFreeze([previousIndex, index])
-            model.setSelectedIndex(null)
-            if(model.checkFreeze()) {
+        if(colorBox[previousIndex] === colorBox[index]) {
+            view.freezeTiles([previousIndex, index])
+            model.updateChosenColor()
+            model.updateSelectedIndex(null)
+            if(model.checkChosenColor()) {
                 view.gameCompleted()
-                view.board.removeEventListener('click', view.triggerAction)
             }
         }
         else {
             view.freezeBoard(true)
             setTimeout(()=> {
-                view.resetTiles([controller.cards[previousIndex], controller.cards[index]], 'auto')
-                model.setSelectedIndex(null)
+                view.resetTiles([previousIndex, index])
+                model.updateSelectedIndex(null)
                 view.freezeBoard(false)
             }, 600)
         }
     }
 }
 
-model.setColorBox()
-controller.init()
+model.createColorBox()
+view.init()
