@@ -11,7 +11,12 @@ const controller = {
   },
   arrayFrominput: (e) => {
     e.preventDefault()
-    let baseArray = new FormData(e.target).get('ip').trim().split(' ').map(val => parseInt(val));
+    let baseArray = []
+    new FormData(e.target).get('ip').trim().split(' ').forEach(val => {
+      if(!isNaN(parseInt(val))) {
+        baseArray.push(parseInt(val))
+      }
+    });
     controller.sumArray(baseArray)
     e.target.reset()
   },
@@ -21,6 +26,7 @@ const controller = {
 
     if(arr.length == 1) {
       view.renderTriangle(model.getTriangleArray())
+      controller.createTriangle(model.getTriangleArray())
       model.resetTriangle();
       return false
     }
@@ -29,6 +35,17 @@ const controller = {
       tempArr.push(parseInt(arr[i]) + parseInt(arr[i+1]))
     }
     controller.sumArray(tempArr)
+  },
+  createTriangle : (arr) => {
+    let spaces = 0;
+    for(let i = (arr.length - 1); i >= 0; i--) {
+      let totalChar = arr[i].reduce((acc, cv) => cv.toString().length + acc, 0)
+      if(spaces) {
+        const splitSpace = Math.ceil(spaces / (arr[i].length -1));
+        console.log(splitSpace);
+      }
+      spaces = totalChar + spaces
+    }
   }
 }
 const view = {
