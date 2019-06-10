@@ -4,7 +4,7 @@ const model ={
   getTriangleArray: () => model.triangleArray,
   updateTriangleArray: (arr) => model.triangleArray.push(arr),
   getSpacesArray: () => model.spacesArray,
-  updateSpacesArray: (val) => model.spacesArray.push(val),
+  updateSpacesArray: (val) => model.spacesArray = val,
   resetTriangle: () => model.triangleArray = []
 }
 
@@ -41,37 +41,43 @@ const controller = {
   },
   createSpaces : (arr) => {
     let temp = []
-    let spaces = 0;
     for(let i = (arr.length - 1); i >= 0; i--) {
-      let totalChar = arr[i].reduce((acc, cv) => cv.toString().length + acc, 0)
-      if(spaces) {
-        temp.push(Math.ceil(spaces / (arr[i].length -1)))
-      }
-      spaces = totalChar + spaces
+      let totalChar = arr[i].toString().replace( /,/g, "" ).length;
+      temp.push(Math.ceil(totalChar / arr[i].length))
     }
-    console.log(temp, 'ppp');
-    temp = temp.reduce((acc, cv) => {
-      console.log(acc, cv);
+    let tt = 0
+    let newtemp = temp.map((item, index) => {
+      if(item > tt) {
+        tt = item;
+        return item
+      }
+      else {
+        return item + (tt - item) + 1
+      }
     })
+    model.updateSpacesArray(newtemp)
   }
 }
 const view = {
   output: document.querySelector('.output'),
   renderTriangle: (arr, spaces) => {
     view.output.innerHTML = '';
-    let highestInt = arr.flat().pop().toString().length;
-    let nbsp = new Array(highestInt + 1).join('&nbsp;')
     arr.forEach((arr, index) => {
       setTimeout(() => {
         let a = document.createElement('div');
         a.classList.add(`row_${index}`);
         view.output.insertBefore(a, document.querySelector(`.row_${index - 1}`))
-        // console.log(spaces[index]);
-        arr.forEach((item, i) => {
+        let nbsp = new Array(spaces[index]).join('&nbsp;')
+        for(let i = 0; i < arr.length; i++) {
           let b = document.createElement('span')
-          b.innerHTML = item + nbsp;
+          if((i+1) !== arr.length) {
+            b.innerHTML = arr[i] + nbsp;
+          }
+          else {
+            b.innerHTML = arr[i];
+          }
           document.querySelector(`.row_${index}`).append(b)
-        })
+        }
       }, 1000* index)
     })
   }
