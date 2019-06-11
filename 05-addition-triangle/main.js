@@ -10,7 +10,6 @@ const model ={
     model.spacesArray = []
   }
 }
-
 const controller = {
   init: _ => {
     document.querySelector('.input').addEventListener('submit', controller.arrayFrominput)
@@ -29,14 +28,12 @@ const controller = {
   sumArray: arr => {
     model.updateTriangleArray(arr)
     const tempArr = []
-
     if(arr.length == 1) {
       controller.createSpaces(model.getTriangleArray())
       view.renderTriangle(model.getTriangleArray(), model.getSpacesArray())
       model.resetAll();
       return false
     }
-
     for(let i=0; i < arr.length - 1; i++) {
       tempArr.push(parseInt(arr[i]) + parseInt(arr[i+1]))
     }
@@ -80,5 +77,4 @@ const view = {
     })
   }
 }
-
 controller.init()
