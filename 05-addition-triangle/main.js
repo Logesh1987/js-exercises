@@ -1,15 +1,18 @@
 const model ={
   triangleArray: [],
   spacesArray: [],
-  getTriangleArray: () => model.triangleArray,
-  updateTriangleArray: (arr) => model.triangleArray.push(arr),
-  getSpacesArray: () => model.spacesArray,
-  updateSpacesArray: (val) => model.spacesArray = val,
-  resetTriangle: () => model.triangleArray = []
+  getTriangleArray: _ => model.triangleArray,
+  updateTriangleArray: arr => model.triangleArray.push(arr),
+  getSpacesArray: _ => model.spacesArray,
+  updateSpacesArray: val => model.spacesArray = val,
+  resetAll: _ => {
+    model.triangleArray = []
+    model.spacesArray = []
+  }
 }
 
 const controller = {
-  init: () => {
+  init: _ => {
     document.querySelector('.input').addEventListener('submit', controller.arrayFrominput)
   },
   arrayFrominput: (e) => {
@@ -23,14 +26,14 @@ const controller = {
     controller.sumArray(baseArray)
     e.target.reset()
   },
-  sumArray: (arr) => {
+  sumArray: arr => {
     model.updateTriangleArray(arr)
     const tempArr = []
 
     if(arr.length == 1) {
       controller.createSpaces(model.getTriangleArray())
       view.renderTriangle(model.getTriangleArray(), model.getSpacesArray())
-      model.resetTriangle();
+      model.resetAll();
       return false
     }
 
@@ -39,23 +42,18 @@ const controller = {
     }
     controller.sumArray(tempArr)
   },
-  createSpaces : (arr) => {
+  createSpaces : arr => {
     let temp = []
+    let prev = 0
     for(let i = (arr.length - 1); i >= 0; i--) {
       let totalChar = arr[i].toString().replace( /,/g, "" ).length;
-      temp.push(Math.ceil(totalChar / arr[i].length))
+      temp.push(Math.ceil((totalChar + prev) / arr[i].length))
+      prev = totalChar + prev;
     }
-    let tt = 0
-    let newtemp = temp.map((item, index) => {
-      if(item > tt) {
-        tt = item;
-        return item
-      }
-      else {
-        return item + (tt - item) + 1
-      }
-    })
-    model.updateSpacesArray(newtemp)
+    temp.unshift(0)
+    temp.pop()
+    temp.reverse()
+    model.updateSpacesArray(temp)
   }
 }
 const view = {
@@ -63,11 +61,11 @@ const view = {
   renderTriangle: (arr, spaces) => {
     view.output.innerHTML = '';
     arr.forEach((arr, index) => {
-      setTimeout(() => {
+      setTimeout(_ => {
         let a = document.createElement('div');
         a.classList.add(`row_${index}`);
         view.output.insertBefore(a, document.querySelector(`.row_${index - 1}`))
-        let nbsp = new Array(spaces[index]).join('&nbsp;')
+        let nbsp = new Array(spaces[index] + 1).join('&nbsp;')
         for(let i = 0; i < arr.length; i++) {
           let b = document.createElement('span')
           if((i+1) !== arr.length) {
