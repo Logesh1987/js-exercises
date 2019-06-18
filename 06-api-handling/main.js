@@ -42,35 +42,38 @@ const view = {
   postBox: document.querySelector('#postBox'),
   modal: document.querySelector('#modal'),
   modalContent: modal.querySelector('.modal-content'),
+  postHTML: () => {
+    const div = document.createElement('div')
+    div.innerHTML = `<div class="col s12 m4"><div class="card">
+    <div class="card-content"><span class="card-title"></span><p class="card-desc"></p></div>
+    <div class="card-action"><a class="waves-effect waves-light btn red accent-2 authorCta" href="#">About Author</a></div>
+    </div></div>`
+    return div
+  },
   renderError: err => {
     M.toast({html: err, classes: 'red accent-4'})
   },
   renderPosts: data => {
+    let fragment = document.createDocumentFragment()
     data.forEach(post => {
-      const html = `
-        <div class="col s12 m4"><div class="card">
-          <div class="card-content"><span class="card-title">${post.title}</span><p>${post.body}</p></div>
-          <div class="card-action"><a data-id="${post.userId}" class="waves-effect waves-light btn red accent-2 authorCta" href="#">About Author</a></div>
-        </div></div>`
-      view.postBox.innerHTML += html
-      view.postBox.addEventListener('click', controller.fetchAuthor)
+      const html = view.postHTML().cloneNode(true)
+      html.querySelector('.card-title').innerHTML = post.title
+      html.querySelector('.card-desc').innerHTML = post.body
+      html.querySelector('.authorCta').setAttribute('data-id', post.userId)
+      fragment.appendChild(html)
     })
+    view.postBox.addEventListener('click', controller.fetchAuthor)
+    view.postBox.appendChild(fragment)
   },
   renderModal: data => {
+    view.modalContent.querySelector('.name').innerHTML = data.name;
+    view.modalContent.querySelector('.phone').innerHTML = data.phone;
+    view.modalContent.querySelector('.email').innerHTML = data.email;
+    view.modalContent.querySelector('.website').innerHTML = data.website;
+
     const instance = M.Modal.init(view.modal, {
-      onCloseEnd:  _ => {
-        view.modalContent.innerHTML = ''
-        instance.destroy()
-      }
+      onCloseEnd: _ => instance.destroy()
     })
-    const html = `
-      <h4 class=" red-text text-accent-3">Author Info</h4><br>
-      <div class="row"><div class="col s3"><strong>Name</strong></div><div class="col s6">${data.name}</div></div>
-      <div class="row"><div class="col s3"><strong>Phone</strong></div><div class="col s6">${data.phone}</div></div>
-      <div class="row"><div class="col s3"><strong>Email</strong></div><div class="col s6">${data.email}</div></div>
-      <div class="row"><div class="col s3"><strong>Website</strong></div><div class="col s6">${data.website}</div></div>
-    `
-    view.modalContent.innerHTML = html;
     instance.open()
   }
 }
