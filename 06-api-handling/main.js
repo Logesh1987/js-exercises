@@ -1,11 +1,15 @@
 const model = {
   postData: [],
-  getPostData: () => model.postData,
+  authorData: [],
+  getAuthorData: _ => model.authorData,
+  updateAuthorData: data => model.authorData.push(data),
+  checkAuthorData: id => model.authorData.find(data => data.id === parseInt(id)),
+  getPostData: _ => model.postData,
   setPostData: (data) => model.postData = data
 }
 
 const controller = {
-  fetchPostData: () => {
+  fetchPostData: _ => {
     fetch(`https://jsonplaceholder.typicode.com/posts`)
       .then(res => res.json())
       .then(res => {
@@ -14,14 +18,23 @@ const controller = {
       })
       .catch(err => view.renderError(err))
   },
-  fetchAuthor: (e) => {
+  fetchAuthor: e => {
     if (e.target.tagName !== 'A') return false;
     e.preventDefault()
     let user_id = e.target.getAttribute('data-id');
-    fetch(`https://jsonplaceholder.typicode.com/users/${user_id}`)
-      .then(res => res.json())
-      .then(res => view.renderModal(res))
-      .catch(err => view.renderError(err))
+    const existingData = model.checkAuthorData(user_id)
+    if(existingData) {
+      view.renderModal(existingData)
+    }
+    else {
+      fetch(`https://jsonplaceholder.typicode.com/users/${user_id}`)
+        .then(res => res.json())
+        .then(res => {
+          view.renderModal(res)
+          model.updateAuthorData(res)
+        })
+        .catch(err => view.renderError(err))
+    }
   }
 }
 
@@ -29,21 +42,21 @@ const view = {
   postBox: document.querySelector('#postBox'),
   modal: document.querySelector('#modal'),
   modalContent: modal.querySelector('.modal-content'),
-  renderError: (err) => {
+  renderError: err => {
     M.toast({html: err, classes: 'red accent-4'})
   },
-  renderPosts: (data) => {
+  renderPosts: data => {
     data.forEach(post => {
-    const html = `
-      <div class="col s12 m4"><div class="card">
-        <div class="card-content"><span class="card-title">${post.title}</span><p>${post.body}</p></div>
-        <div class="card-action"><a data-id="${post.userId}" class="waves-effect waves-light btn red accent-2 authorCta" href="#">About Author</a></div>
-      </div></div>`
-    view.postBox.innerHTML += html
-    view.postBox.addEventListener('click', controller.fetchAuthor)
+      const html = `
+        <div class="col s12 m4"><div class="card">
+          <div class="card-content"><span class="card-title">${post.title}</span><p>${post.body}</p></div>
+          <div class="card-action"><a data-id="${post.userId}" class="waves-effect waves-light btn red accent-2 authorCta" href="#">About Author</a></div>
+        </div></div>`
+      view.postBox.innerHTML += html
+      view.postBox.addEventListener('click', controller.fetchAuthor)
     })
   },
-  renderModal: (data) => {
+  renderModal: data => {
     const instance = M.Modal.init(view.modal, {
       onCloseEnd:  _ => {
         view.modalContent.innerHTML = ''
