@@ -124,7 +124,7 @@ const view = {
     );
     view.stockBox.addEventListener("click", controller.cartUpdate);
     view.cartBox.addEventListener("click", controller.cartUpdate);
-    view.cartHead.innerHTML = `Cart ${cart.length ? `(${cart.length})` : ""}`;
+    view.renderCartTotal();
   },
   renderStock: (target, data) => {
     const stockItem = view.stockBox.querySelector(
@@ -143,6 +143,14 @@ const view = {
       view.stockBox.appendChild(li);
     }
   },
+  renderCartTotal: e => {
+    const cartTotal = model
+      .getCart()
+      .reduce((a, b) => ({ count: a.count + b.count }));
+    view.cartHead.innerHTML = `Cart ${
+      cartTotal.count ? `(${cartTotal.count})` : ""
+    }`;
+  },
   renderCart: (target, data) => {
     const cartItem = view.cartBox.querySelector(`li[data-item = '${target}']`);
     if (cartItem) {
@@ -157,6 +165,7 @@ const view = {
       li.innerHTML = `${data.name} ${data.count ? `(${data.count})` : ""}`;
       view.cartBox.appendChild(li);
     }
+    view.renderCartTotal();
   }
 };
 
