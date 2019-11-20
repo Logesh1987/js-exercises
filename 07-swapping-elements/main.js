@@ -60,30 +60,26 @@ const controller = {
       );
     }
   },
-  addToCart: e => {
-    e.preventDefault();
+  cartUpdate: e => {
     if (e.target.tagName === "LI") {
       const selectedItem = e.target.getAttribute("data-item");
-      model.stock.find((item, index) => {
-        if (item.name === selectedItem && item.count) {
-          model.updateCart(selectedItem, "add");
-          view.renderStock(selectedItem, model.stock[index]);
-          view.renderCart(selectedItem, model.cart[index]);
-        }
-      });
-    }
-  },
-  removeFromCart: e => {
-    e.preventDefault();
-    if (e.target.tagName === "LI") {
-      const selectedItem = e.target.getAttribute("data-item");
-      model.cart.find((item, index) => {
-        if (item.name === selectedItem && item.count) {
-          model.updateCart(selectedItem, "remove");
-          view.renderStock(selectedItem, model.stock[index]);
-          view.renderCart(selectedItem, model.cart[index]);
-        }
-      });
+      if (e.target.parentElement.classList.contains("stock")) {
+        model.stock.find((item, index) => {
+          if (item.name === selectedItem && item.count) {
+            model.updateCart(selectedItem, "add");
+            view.renderStock(selectedItem, model.stock[index]);
+            view.renderCart(selectedItem, model.cart[index]);
+          }
+        });
+      } else {
+        model.cart.find((item, index) => {
+          if (item.name === selectedItem && item.count) {
+            model.updateCart(selectedItem, "remove");
+            view.renderStock(selectedItem, model.stock[index]);
+            view.renderCart(selectedItem, model.cart[index]);
+          }
+        });
+      }
     }
   },
   clearCart: e => {
@@ -116,14 +112,18 @@ const view = {
         view.cartBox.appendChild(li);
       }
     });
-    view.clearCart.addEventListener("click", e => {
-      e.preventDefault();
-      view.stockBox.innerHTML = "";
-      view.cartBox.innerHTML = "";
-      controller.clearCart();
-    });
-    view.stockBox.addEventListener("click", controller.addToCart);
-    view.cartBox.addEventListener("click", controller.removeFromCart);
+    view.clearCart.addEventListener(
+      "click",
+      e => {
+        e.preventDefault();
+        view.stockBox.innerHTML = "";
+        view.cartBox.innerHTML = "";
+        controller.clearCart();
+      },
+      { once: true }
+    );
+    view.stockBox.addEventListener("click", controller.cartUpdate);
+    view.cartBox.addEventListener("click", controller.cartUpdate);
     view.cartHead.innerHTML = `Cart ${cart.length ? `(${cart.length})` : ""}`;
   },
   renderStock: (target, data) => {
