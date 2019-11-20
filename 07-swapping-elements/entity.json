@@ -1,0 +1,30 @@
+[
+  {
+    "name": "Apple",
+    "count": 10
+  },
+  {
+    "name": "Avocado",
+    "count": 10
+  },
+  {
+    "name": "Banana",
+    "count": 10
+  },
+  {
+    "name": "Grape",
+    "count": 10
+  },
+  {
+    "name": "Guava",
+    "count": 10
+  },
+  {
+    "name": "Mango",
+    "count": 10
+  },
+  {
+    "name": "Papaya",
+    "count": 10
+  }
+]
